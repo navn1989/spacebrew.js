@@ -1,0 +1,191 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+    <title>Spacebrew TweetMove </title>
+
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/reset.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" src="js/color.js"></script>
+    <script type="text/javascript" src="js/jq.js"></script>
+	<script type="text/javascript" src="js/sb-1.3.0.js"></script>
+    <script type="text/javascript">
+    	var TweetMove = (function() {
+    		var minColor = new Color(0, 0, 0),
+    			maxColor = new Color(0, 255, 0),
+    			color = new Color(0, 0, 0),
+    			colorTarget = new Color(0, 0, 0),
+    			colorJSON = {
+					r : 0,
+					g : 255,
+					b : 0
+    			},
+    			timeTarget,
+    			lastUpdate = new Date(),
+    			dt = 0,
+    			TWEET_MODE = false,
+    			ACCEL_MODE = true,
+    			mode = ACCEL_MODE;
+
+    		start();
+
+    		function start() {
+    			time = 0.0;
+    			timeTarget = 0.0;
+    			updateColor();
+    			setInterval(update, 50);
+    		}
+
+    		function moveTowards(a, b, increase) {
+    			var diff = b-a,
+			        sign = (diff > 0 ? 1 : diff < 0 ? -1 : 0),
+			        increase = Math.abs(increase);
+
+			    var result = a + increase*sign;
+
+			    if (sign > 0) {
+			        result = Math.min(result, b);
+			    } else if (sign < 0) {
+			        result = Math.max(result, b);
+			    }
+			    
+			    return result;
+    		}
+
+    		function lerp(a, b, time) {
+    			return Math.min(a + (b-a)*time, b);
+    		}
+
+    		function update() {
+    			var now = new Date();
+    			dt = (now - lastUpdate)/1000;
+
+    			if (mode == TWEET_MODE) {
+    				time = moveTowards(time, timeTarget, dt*0.05);
+    				colorTarget = Color.lerp(minColor, maxColor, time);
+    			}
+    				
+    			updateColor();
+
+    			
+    			sb.send("move color", "color", JSON.stringify(colorJSON));
+
+    			lastUpdate = now;
+				timeTarget -= dt*0.01;
+    			timeTarget = Math.max(0, timeTarget);
+    		}
+
+    		function updateColor() {
+    			color = Color.moveTowards(color, colorTarget, dt*100);
+    			colorJSON.r = color.r;
+    			colorJSON.g = color.g;
+    			colorJSON.b = color.b;
+    		}
+
+    		function onTweet(tweet) {
+    			timeTarget += 0.25;
+    			console.log(tweet);
+    		}
+
+			function onMove(move) {
+				if (mode != ACCEL_MODE) return;
+
+    			var moveJson = JSON.parse(move),
+    				accel = moveJson.accelerometer,
+    				movement = Math.sqrt(Math.pow(accel.x, 2) + Math.pow(accel.y, 2) + Math.pow(accel.z, 2));
+
+    			accel.x = ((accel.x/movement) + 1)/2.0;
+    			accel.y = ((accel.y/movement) + 1)/2.0;
+    			accel.z = ((accel.z/movement) + 1)/2.0;
+
+    			colorTarget.r = lerp(0, 255, accel.x);
+    			colorTarget.g = lerp(0, 255, accel.y);
+    			colorTarget.b = lerp(0, 255, accel.z);
+    		}
+
+    		function toggleMode() {
+    			mode = !mode;
+    			if (mode == TWEET_MODE) return "Tweet Mode";
+    			else return "Accelerometer mode";
+    		}
+
+    		return {
+    			udpate: update,
+    			onTweet: onTweet,
+    			onMove: onMove,
+    			toggleMode: toggleMode
+    		}
+    	});
+
+		$(window).on("load", setup);
+	      
+		// Spacebrew Object
+		var sb
+			, app_name = "TweetMove"
+			, tweetMove;
+
+		/**
+	     * setup Configure spacebrew connection and adds the mousedown listener.
+	     */
+		function setup (){
+			var random_id = "0000" + Math.floor(Math.random() * 10000)
+				;
+
+			app_name = app_name + ' ' + random_id.substring(random_id.length-4);
+
+			// create spacebrew client object
+			sb = new Spacebrew.Client();
+
+			// set the base description
+			sb.name(app_name);
+			sb.description("This spacebrew example sends and receives PSMove messages.");
+
+			// configure the publication and subscription feeds
+			sb.addPublish( "move color", "color");
+			sb.addSubscribe( "tweet json", "tweet");
+			sb.addSubscribe( "move data", "move");
+
+			// override Spacebrew events - this is how you catch events coming from Spacebrew
+			sb.onCustomMessage = onCustomMessage;
+			sb.onOpen = onOpen;
+
+			// connect to spacbrew
+			sb.connect();
+
+			$("#buttonMsg").click(onPressButton);
+		}	
+
+		function onPressButton() {
+			$("#mode").html(tweetMove.toggleMode());
+		}
+
+		function onOpen() {
+			var message = "Connected as <strong>" + sb.name() + "</strong>. ";
+			if (sb.name() === app_name) {
+				message += "<br>You can customize this app's name in the query string by adding <strong>name=your_app_name</strong>."
+			}
+			$("#name").html( message );
+			tweetMove = new TweetMove();
+		}
+
+		function onCustomMessage( name, value, type ) {
+			if (type == "move") {
+				tweetMove.onMove(value);
+			} else if (type == "tweet") {
+				tweetMove.onTweet(value);
+			}
+		}
+
+	</script>
+	</head>
+
+	<body>
+		<a class="button" id="buttonMsg">Change Mode</a>
+		<h1 id="mode">Accelerometer mode</h1>
+		</br></br>
+		<div id="name">Trying to connect</div>
+
+	</body>
+
+</html>

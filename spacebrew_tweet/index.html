@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+    <title>Spacebrew TwitterFetcher</title>
+
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/reset.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" src="js/twitterFetcher_v10_min.js"></script>
+    <script type="text/javascript" src="js/twitterFetcherProxy.js"></script>
+    <script type="text/javascript" src="js/jq.js"></script>
+	<script type="text/javascript" src="js/sb-1.3.0.js"></script>
+    <script type="text/javascript">
+
+		$(window).on("load", setup);
+	      
+		// Spacebrew Object
+		var sb
+			, app_name = "Spacebrew TwitterFetcher"
+			, twitterFetcherProxy;
+
+		/**
+	     * setup Configure spacebrew connection and adds the mousedown listener.
+	     */
+		function setup (){
+			var random_id = "0000" + Math.floor(Math.random() * 10000)
+				;
+
+			app_name = app_name + ' ' + random_id.substring(random_id.length-4);
+
+			// create spacebrew client object
+			sb = new Spacebrew.Client();
+
+			// set the base description
+			sb.name(app_name);
+			sb.description("This spacebrew grabs tweets");
+
+			// configure the publication and subscription feeds
+			sb.addPublish( "tweet json", "tweet" );
+			sb.addPublish( "tweet", "boolean", "false");
+			sb.addPublish( "tweet status", "string");
+
+			// override Spacebrew events - this is how you catch events coming from Spacebrew
+			sb.onCustomMessage = onCustomMessage;
+			sb.onOpen = onOpen;
+
+			// connect to spacbrew
+			sb.connect();
+
+			// listen to the mouse 
+			$("#buttonMsg").on("mousedown", onButtonPress);
+
+			
+		}	
+
+		function processTweet(tweet) {
+			$("#tweet").text(tweet.text);
+			sb.send("tweet json", "tweet", tweet);
+			sb.send("tweet", "boolean", "true");
+			sb.send("tweet status", "string", tweet.text);
+			setTimeout(function() { 
+				sb.send("tweet", "boolean", "false");
+			}, 100);
+		}
+
+		function onOpen() {
+			var message = "Connected as <strong>" + sb.name() + "</strong>. ";
+			if (sb.name() === app_name) {
+				message += "<br>You can customize this app's name in the query string by adding <strong>name=your_app_name</strong>."
+			}
+			$("#name").html( message );
+		}
+
+		function onButtonPress (evt) {
+			var widget = $("#widgetID").val();
+
+			if (widget.length > 0) {
+				twitterFetcherProxy = new TwitterFetcherProxy({
+					widgetID: widget,
+					fetchTime: 5000,
+					processPeriod: 1000,
+					processCallback: processTweet
+				});
+			}
+		}
+
+		function onCustomMessage( name, value, type ) {
+			if (type = "tweet") {        
+			}
+		}
+
+	</script>
+	</head>
+
+	<body>
+		<div>
+			<input id="widgetID" type="text" placeholder="397041894896570368" value="397041894896570368"><br>
+		</div>
+		<a class="button disabled" id="buttonMsg">Start listening</a>
+		<h2>
+			Last tweet: <span id="tweet"/> 
+		</h2>
+
+		</br></br>
+		<div id="name">Trying to connect</div>
+
+	</body>
+
+</html>

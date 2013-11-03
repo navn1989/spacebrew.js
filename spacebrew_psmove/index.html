@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+    <title>Spacebrew PSMove </title>
+
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/reset.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" src="js/jq.js"></script>
+	<script type="text/javascript" src="js/sb-1.3.0.js"></script>
+    <script type="text/javascript">
+
+		$(window).on("load", setup);
+	      
+		// Spacebrew Object
+		var sb
+			, app_name = "PSMove"
+			;
+
+		/**
+	     * setup Configure spacebrew connection and adds the mousedown listener.
+	     */
+		function setup (){
+			var random_id = "0000" + Math.floor(Math.random() * 10000)
+				;
+
+			app_name = app_name + ' ' + random_id.substring(random_id.length-4);
+
+			// create spacebrew client object
+			sb = new Spacebrew.Client();
+
+			// set the base description
+			sb.name(app_name);
+			sb.description("This spacebrew example sends and receives PSMove messages.");
+
+			// configure the publication and subscription feeds
+			sb.addSubscribe( "psmove data", "move" );
+
+			// override Spacebrew events - this is how you catch events coming from Spacebrew
+			sb.onCustomMessage = onCustomMessage;
+			sb.onOpen = onOpen;
+
+			// connect to spacbrew
+			sb.connect();
+		}	
+
+		function onOpen() {
+			var message = "Connected as <strong>" + sb.name() + "</strong>. ";
+			if (sb.name() === app_name) {
+				message += "<br>You can customize this app's name in the query string by adding <strong>name=your_app_name</strong>."
+			}
+			$("#name").html( message );
+		}
+
+		function onCustomMessage( name, value, type ) {
+			if (type = "move") {
+				console.log(value);
+			}
+		}
+
+	</script>
+	</head>
+
+	<body>
+		</br></br>
+		<div id="name">Trying to connect</div>
+
+	</body>
+
+</html>
