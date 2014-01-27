@@ -197,6 +197,8 @@ Spacebrew.Client = function( server, name, description, options ){
 	this.client_config = {
 		name: this._name,
 		description: this._description,
+		version: "0",
+		device: "1",
 		publish:{
 			messages:[]
 		},
@@ -221,8 +223,7 @@ Spacebrew.Client = function( server, name, description, options ){
  */
 Spacebrew.Client.prototype.connect = function(){
 	try {
-		console.log("ws://" + this.server + ":" + this.port +"/rflea" );
-		this.socket 	 		= new WebSocket("ws://" + this.server + ":" + this.port +"/rflea" );
+		this.socket 	 		= new WebSocket("ws://" + this.server + ":" + this.port);
 		this.socket.onopen 		= this._onOpen.bind(this);
 		this.socket.onmessage 	= this._onMessage.bind(this);
 		this.socket.onclose 	= this._onClose.bind(this);
