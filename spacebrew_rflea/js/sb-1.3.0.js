@@ -197,8 +197,8 @@ Spacebrew.Client = function( server, name, description, options ){
 	this.client_config = {
 		name: this._name,
 		description: this._description,
-		version: "0",
-		device: "1",
+		version: "0001",
+		device: "0001",
 		publish:{
 			messages:[]
 		},

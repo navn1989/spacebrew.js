@@ -35,7 +35,7 @@
 			sb.description("This spacebrew client sends and receives boolean messages.");
 
 			// configure the publication and subscription feeds
-			sb.addPublish( "input0", "boolean", "false" );
+			sb.addPublish( "input0", "boolean", "false"  );
 			sb.addSubscribe( "output0", "boolean", "false" );
 			sb.addSubscribe( "output1", "boolean", "false" );
 			sb.addSubscribe( "output2", "boolean", "false" );
@@ -51,6 +51,11 @@
 			// listen to the mouse 
 			$("#buttonMsg").on("mousedown", onButtonPress);
 			$("#buttonMsg").on("mouseup", onButtonRelease);
+
+			setInterval(function() {
+				console.log("dfasdfasdf");
+				sb.send("input0", "boolean", 22);
+			}, 1000);
 		}	
 
 		/**
