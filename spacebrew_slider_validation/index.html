@@ -1,0 +1,191 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>Spacebrew Sliders (Range Example)</title> 
+
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.css" />
+	<link rel="stylesheet" href="css/custom.css" />
+	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
+	<script type="text/javascript" src="js/sb-1.3.0.js"></script>
+
+    <script type="text/javascript">
+
+    	// when page loads call spacebrew setup function 
+		$(window).on("load", setupSpacebrew);
+
+		// wher the jquery mobile is ready to initialize the UI call the setUI function 
+		$(document).bind("pageinit", setupUI);
+
+		// Spacebrew Object
+		var sb
+			, app_name = "slider example"
+			, values = {} 
+			, range = {}
+			, MAX_RANGE = 1023.0
+			, rangeA = $("#range-10a")
+			, rangeB = $("#range-10b")
+			, rangeSlider = $( "#rangeslider" )
+			, remapRecording = false
+			, remapButton = $("#remapButton")
+			, recordButton = $("#recordButton")
+			, recordAnimation;
+
+		/**
+		 * setupSpacebrew Function that creates and configures the connection to the Spacebrew server.
+		 * 				  It is called when the page loads.
+		 */
+		function setupSpacebrew (){
+			var random_id = "0000"//+ Math.floor(Math.random() * 10000)
+				;
+
+			app_name = app_name + ' ' + random_id.substring(random_id.length-4);
+
+			console.log("Setting up spacebrew connection");
+			sb = new Spacebrew.Client();
+
+			sb.name(app_name);
+			sb.description("Sliders for sending and displaying SpaceBrew range messages.");
+
+			// configure the publication and subscription feeds
+			sb.addPublish("slider", "range", "500");
+			sb.addSubscribe("slider", "range");
+
+			// override Spacebrew events - this is how you catch events coming from Spacebrew
+			sb.onRangeMessage = onRangeMessage;
+			sb.onOpen = onOpen;
+
+			// connect to spacbrew
+			sb.connect();
+
+			rangeA = $("#range-10a");
+			rangeB = $("#range-10b");
+			rangeSlider = $( "#rangeslider" ).rangeslider();
+			remapButton = $("#remapButton");
+			recordButton = $("#recordButton");
+		};
+
+		/**
+		 * Function that is called when Spacebrew connection is established
+		 */
+		function onOpen() {
+			var message = "Connected as <strong>" + sb.name() + "</strong>. ";
+			if (sb.name() === app_name) {
+				message += "<br>You can customize this app's name in the query string by adding <strong>name=your_app_name</strong>."
+			}
+			$("#name").html( message );
+		}
+
+
+		/**
+		 * setupUI Function that create the event listeners for the sliders. It creates an callback
+		 * 		   function that sends a spacebrew message whenever an slide event is received.
+		 */
+		function setupUI() {
+			console.log("Setting up the UI listeners");
+			// when the slider state changes it sends a message to spacebrew
+			$(".slider").bind( "change", function(event, ui) {
+				if (values[event.target.id] != event.target.value) {
+					sb.send(event.target.id, "range", event.target.value);
+					values[event.target.id] = event.target.value;
+				}
+			});
+		}
+
+		/**
+		 * onRangeMessage Function that is called whenever new spacebrew range messages are received.
+		 * 				  It accepts two parameters:
+		 * @param  {String} name  	Holds name of the subscription feed channel
+		 * @param  {Integer} value 	Holds value received from the subscription feed
+		 */
+		function onRangeMessage(name, value){
+			updateRange();
+			var min = range.min,
+				max = range.max;
+
+			if (remapRecording) {
+				if (value < min) {
+					min = value;
+					rangeA.val(min);
+				} else if (value > range.max) {
+					max = value;
+					rangeB.val(max);
+				}
+				rangeA.slider("refresh");
+				rangeB.slider("refresh");
+			}
+
+			if (!getRemapEnabled()) {
+				value = remap(min, max, value);
+			}
+			$("#"+name).slider('refresh', value);
+		};
+
+		function updateRange() {
+			range.min = parseInt(rangeA.val());
+			range.max = parseInt(rangeB.val());
+		}
+
+		function remap(min, max, value) {
+			return Math.min(Math.max(value-min, 0), max)/(max-min)*MAX_RANGE;
+		}
+
+		function toggleRemap() {
+			rangeSlider.toggleClass("ui-disabled", !getRemapEnabled());
+		}
+
+		function getRemapEnabled() {
+			return rangeSlider.hasClass("ui-disabled");
+		}
+
+		function toggleRemapRecording() {
+			remapRecording = !remapRecording;
+			recordButton.toggleClass("recording");
+			if (remapRecording) {
+				recordButton.find("span .ui-icon").toggleClass("ui-icon-radio-on", true).toggleClass("ui-icon-radio-off", false);
+				recordAnimation = setInterval(function() {
+					recordButton.find("span .ui-icon").toggleClass("ui-icon-radio-on").toggleClass("ui-icon-radio-off");
+				}, 800);
+			} else {
+				recordButton.find("span .ui-icon").toggleClass("ui-icon-radio-on", false).toggleClass("ui-icon-radio-off", true);
+				clearInterval(recordAnimation);
+			}
+		}
+
+    </script>
+
+</head> 
+<body> 
+
+<div data-role="page">
+	<div data-role="header">
+		<h1>SpaceBrew Sliders with Validation</h1>
+	</div>
+	
+	<div data-role="content">
+		<a id="recordButton" onclick="toggleRemapRecording();" data-role="button" data-inline="true" data-theme="d" data-icon="radio-off">
+			Record
+		</a>
+		<a id="remapButton" onclick="toggleRemap();" data-role="button" data-inline="true" data-theme="d" >
+			Remap
+		</a>
+		<div data-role="rangeslider" id="rangeslider">
+		  <label for="range-10a">Rangeslider:</label>
+		  <input name="range-10a" id="range-10a" min="0" max="1023" step=".1" value="0" type="range" />
+		  <label for="range-10b">Rangeslider:</label>
+		  <input name="range-10b" id="range-10b" min="0" max="1023" step=".1" value="1023" type="range" />
+		</div>
+		<form id="defaults">
+			<label for="slider">Input Slider 1:</label>
+			<input type="range" class="slider" name="slider" id="slider" value="500" min="0" max="1023"  />
+		</form>
+
+		</br></br>
+		<div id="name">Trying to connect</div>
+
+	</div><!-- /content -->
+</div><!-- /page -->
+
+</body>
+</html>

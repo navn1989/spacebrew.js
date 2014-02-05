@@ -1,0 +1,24 @@
+.ui-btn-up-d.recording {
+	border: 1px solid #044062;
+	background: #396b9e;
+	font-weight: 700;
+	color: #fff;
+	text-shadow: 0 1px 0 #194b7e;
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#FF131D),to(#b30808));
+	background-image: -moz-linear-gradient(#FF131D,#b30808);
+	background-image: -ms-linear-gradient(#FF131D,#b30808);
+	background-image: linear-gradient(#FF131D,#b30808);
+}
+
+.ui-btn-hover-d.recording {
+	border: 1px solid #044062;
+	background: #396b9e;
+	font-weight: 700;
+	color: #fff;
+	text-shadow: 0 1px 0 #194b7e;
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#FD757B),to(#DB0E0E));
+	background-image: -moz-linear-gradient(#FD757B,#DB0E0E);
+	background-image: -ms-linear-gradient(#FD757B,#DB0E0E);
+	background-image: linear-gradient(#FD757B,#DB0E0E);
+}
+
