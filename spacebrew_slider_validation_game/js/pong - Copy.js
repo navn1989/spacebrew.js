@@ -43,8 +43,7 @@ var canvas = document.getElementById("canvas"),
 		init, // variable to initialize animation
 		paddleHit,
 		deltaTime = 0,
-		prevTime = new Date(),
-		deltaTime = 0;
+		prevTime;
 
 // Add mousemove and mousedown events to the canvas
 canvas.addEventListener("mousemove", trackPosition, true);
@@ -73,8 +72,8 @@ function Paddle(pos) {
 	this.x = W/2 - this.w/2;
 	this.y = (pos == "top") ? 0 : H - this.h;
 	this.target = this.x;
-	this.accel = 80;
-	this.maxVelocity = 100.0;
+	this.accel = 0.0;
+	this.maxVelocity = 5.0;
 	this.velocity = 0;
 
 	this.tween = null;
@@ -87,12 +86,20 @@ function Paddle(pos) {
 
 	this.moveTo = function(x) {
 		this.target = x;
+		if (this.tween == null) {
+			//this.tween = createjs.Tween.get(this).to({"x": x}, 200).call(onComplete);
+		}
 	}
 
 	this.update = function() { 
-		this.velocity += (this.target - this.x > 0 ? 1 : -1)*this.accel;
-		this.velocity = Math.max(this.velocity, this.maxVelocity);
-		this.x += this.velocity*deltaTime;
+		/*if (this.x != this.target) {
+			this.x = (this.target - this.x)*0.5;
+		}*/
+		this.velocity += Math.sign(this.target - this.x)*accel;
+		if (this.tween) {
+			console.log(new Date() - prevTime);
+			//this.tween.tick(new Date() - prevTime, false);
+		}
 	}
 }
 
@@ -183,7 +190,6 @@ function draw() {
 	ball.draw();
 	update();
 
-	deltaTime = (new Date() - prevTime)/1000.;
 	prevTime = new Date();
 }
 
