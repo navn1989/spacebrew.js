@@ -21,7 +21,7 @@
 		var sb
 			, app_name = "hue light"
 			, values = {} 
-			;
+			, hueAddress = window.getQueryString('hue') || "http://192.168.0.100";
 
 		/**
 		 * setupSpacebrew Function that creates and configures the connection to the Spacebrew server.
@@ -89,7 +89,8 @@
 			var message = {};
 			message[name] = value;
 			console.log("received", name, value);
-			httpRequest("http://192.168.0.100/api/webuser123/lights/1/state","PUT", JSON.stringify(message));
+			// This is just an example
+			httpRequest(hueAddress + "/api/webuser123/lights/1/state","PUT", JSON.stringify(message));
 			$("#brightness"+name).slider('refresh', value);
 		};
 
