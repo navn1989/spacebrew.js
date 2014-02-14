@@ -1,0 +1,170 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>Spacebrew Sliders (Range Example)</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<link rel="stylesheet" href="jquery.mobile-1.2.0.min.css" />
+	<script src="js/jquery-1.8.2.min.js"></script>
+	<script src="js/jquery.mobile-1.2.0.min.js"></script>
+	<script type="text/javascript" src="js/sbAndroid.js"></script>
+	<script type="text/javascript" src="js/sb-1.3.0.js"></script>
+	<style> 
+		.circle {
+		    width: 100%;
+		    height: 0;
+		    padding-bottom: 100%;
+		    -webkit-border-radius: 50%;
+		    -moz-border-radius: 50%;
+		    border-radius: 50%; 
+		    color: red;
+		    background-color: red;
+		}
+		.circle.inner {
+		    width: 100%;
+		    height: 0;
+		    padding-bottom: 100%;
+		    -webkit-border-radius: 50%;
+		    -moz-border-radius: 50%;
+		    border-radius: 50%; 
+		    color: red;
+		    background-color: red;
+		}
+		.circle span {
+			width: 100%;
+		}
+	</style>
+</head> 
+<body> 
+	<div data-role="page">
+		<div data-role="content">	
+			<span id="data"></div>
+			</br></br>
+			<div id="name">Trying to connect</div>
+		</div><!-- /content -->
+		
+	</div><!-- /page -->
+	
+	<script type="text/javascript">
+		// wher the jquery mobile is ready to initialize the UI call the setUI function 
+		$(document).bind("pageinit", setupUI);
+
+		// Spacebrew Object
+		var sb
+			, app_name = "slider example"
+			, values = {};
+
+		function setupSpacebrew (app_name) {
+			app_name = "tei" + app_name;
+
+			console.log("Setting up spacebrew connection");
+			sb = new Spacebrew.Client();
+
+			sb.name(app_name);
+			sb.description("Sliders for sending and displaying SpaceBrew range messages.");
+
+			// configure the publication and subscription feeds
+			sb.addPublish("analog0", "range", "500");
+			sb.addPublish("analog1", "range", "500");
+			sb.addPublish("digital0", "range", "500");
+			sb.addPublish("digital1", "range", "500");
+			sb.addPublish("digital2", "range", "500");
+			sb.addPublish("digital3", "range", "500");
+			sb.addPublish("rssi", "range", "500");
+
+			// override Spacebrew events - this is how you catch events coming from Spacebrew
+			sb.onRangeMessage = onRangeMessage;
+			sb.onOpen = onOpen;
+
+			// connect to spacbrew
+			sb.connect();
+		};
+
+		if (window.location.search.indexOf("test") != -1){
+			onMessage("100,10,20,30,40,50,60,70,80,90,10,11,12,13");
+		}
+		
+		function onMessage(data) {
+			$("body div:first").css("background-image", "-webkit-linear-gradient( #FFB479,#FFB479)");
+			
+			var rfleaData = parseRflea(data);
+			$("#data").html("message " + data);
+			var analog = rfleaData.analogIn;
+			var digital = rfleaData.digitalIn;
+
+			if (sb == undefined) {
+				setupSpacebrew(rfleaData.MAC);
+			}
+
+			for (var i in analog) {
+				sb.send("analog"+i, "range", analog[i]*4);
+			}
+
+			for (var i in digital) {
+				sb.send("digital"+i, "range", digital[i]*4);
+			}
+
+			sb.send("rssi", "range", rfleaData.RSSI);
+		}
+
+		function parseRflea(data) {
+			var data = data.split(",");
+
+			return {
+				channel: parseInt(data[2]),
+				analogIn: [
+					parseInt(data[3]),
+					parseInt(data[4])
+				],
+				analogIn0: parseInt(data[3]),
+				analogIn1: parseInt(data[4]),
+				digitalIn: [
+					parseInt(data[5]),
+					parseInt(data[6]),
+					parseInt(data[7]),
+					parseInt(data[8])
+				],
+				digitalIn0: parseInt(data[5]),
+				digitalIn1:parseInt(data[6]),
+				digitalIn2: parseInt(data[7]),
+				digitalIn3: parseInt(data[8]),
+				MAC: data[9] + ":"+ data[10] + ":" + data[11] + ":" + data[12],
+				RSSI: parseInt(data[13]), 
+			}
+		}
+		
+		function onPaired() {
+			$("#data").html("connected");
+			$("body div:first").css("background-image", "-webkit-linear-gradient( #B4FF79,#54FF8B)");
+		}
+		
+		function onSearching() {
+			$("#data").html("searching");
+			$("body div:first").css("background-image", "-webkit-linear-gradient( #FFB479,#FFCF54)");
+		}
+
+		function onOpen() {
+			var message = "Connected as <strong>" + sb.name() + "</strong>. ";
+			if (sb.name() === app_name) {
+				message += "<br>You can customize this app's name in the query string by adding <strong>name=your_app_name</strong>."
+			}
+			$("#name").html(message);
+		}
+
+		function setupUI() {
+			console.log("Setting up the UI listeners");
+			// when the slider state changes it sends a message to spacebrew
+			$(".slider").bind( "change", function(event, ui) {
+				if (values[event.target.id] != event.target.value) {
+					sb.send(event.target.id, "range", event.target.value);
+					values[event.target.id] = event.target.value;
+				}
+			});
+		}
+
+		function onRangeMessage(name, value){
+			console.log("Received new range message ", value);
+			$("#"+name).slider('refresh', value);
+		};
+    </script>
+</body>
+</html>

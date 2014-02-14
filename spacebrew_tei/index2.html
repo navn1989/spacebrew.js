@@ -1,0 +1,315 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>Spacebrew Sliders (Range Example)</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<link rel="stylesheet" href="jquery.mobile-1.2.0.min.css" />
+	<script src="js/jquery-1.8.2.min.js"></script>
+	<script src="js/jquery.mobile-1.2.0.min.js"></script>
+	<script type="text/javascript" src="js/sbAndroid.js"></script>
+	<script type="text/javascript" src="js/sb-1.3.0.js"></script>
+	<script type="text/javascript" src="js/flowtype.js"></script>
+	<style> 
+		@-webkit-keyframes rFlea-idle {
+			from { -webkit-transform: scale(0, 0);}
+			to { -webkit-transform: scale(1, 1);}
+		}
+
+		@-webkit-keyframes rFlea-paired {
+			from { -webkit-transform: scale(1, 1);}
+			to { -webkit-transform: scale(1.05, 1.05);}
+		}
+
+		@-webkit-keyframes rFlea-idle-clip {
+			from { clip: rect(300px, 0px, 0px, 500px); }
+			to { clip: rect(0px, 300px, 500px, 0px); }
+    	}
+		.circle {
+		    width: 100%;
+		    height: 0;
+		    padding-bottom: 100%;
+		    -webkit-border-radius: 50%;
+		    -moz-border-radius: 50%;
+		    border-radius: 50%; 
+		    color: #DC3500;
+		    background-color: #DC3500;
+		    position: relative;
+		    -webkit-transition: background-color 0.5s;
+		}
+		.box-shadow {
+		  box-shadow: 
+		    0 0 150px rgba(0,0,0, 0.1) inset,
+		    0 0 100px rgba(0,0,0, 0.1) inset;
+		}
+
+		.inner .circle {
+		    width: 100%;
+		    height: auto;
+		    padding-bottom: 100%;
+		    -webkit-border-radius: 50%;
+		    -moz-border-radius: 50%;
+		    border-radius: 50%; 
+		    color: white;
+		    background-color: white;
+		}
+
+		#circle.searching .inner .circle {
+			-webkit-animation: rFlea-idle 3s ease-out infinite alternate;
+		}
+
+		#circle.paired .inner .circle {
+			-webkit-animation: rFlea-paired 1s ease-out infinite alternate;
+		}
+
+		#circle.paired {
+			background-color: #1FD540;
+		}
+
+		#circle.paired #sensorText {
+			visibility: hidden;
+		}
+
+		.text {
+		  text-align: center;
+		  width: 100%;
+		  top: 50%;
+		  margin-top: -10%;
+		  position: absolute;
+		  color: #DC3522;
+		  text-shadow: 0 0 0 rgba(0,0,0,0);
+		}
+
+		#id.text {
+			color: #363635;
+		}
+		body, body > div {
+			background: #1E1E20 !important;
+		}
+		.ui-field-contain .ui-controlgroup-controls {
+			width: inherit !important;
+		}
+		.ui-body-c, .ui-overlay-c {
+			color: #D9CB9E;
+			text-shadow: 0 0px 0 rgba(0,0,0,0);
+		}
+		.ui-content {
+			padding: 0px;
+		}
+
+		#spacebrewConnection {
+			height: 0px;
+		}
+		#spacebrewConnection.connected {
+			height: 50px !important;
+		}
+	</style>
+</head> 
+<body> 
+	<div data-role="page">
+		<div data-role="content">	
+			<div style="height:50px;">
+				<div id="spacebrewConnection" style="height: 0px;background-color: red; width:1%; margin-left:49.5%;opacity:1;transition: height 0.5s ease-in-out;">
+				</div>
+			</div>
+			<div style="width:60%;padding-left:20%;">
+				<div id="circle" class="searching circle box-shadow">
+					<div class="text" style="color:white">
+						PLACE
+					</div>
+					<div class="inner" style="width: 80%; padding-top: 10%; margin-left: 10%">
+						<div class="circle"></div>
+						<div id="sensorText" class="text" style="margin-left:-10%;">
+							SENSOR
+						</div>
+						<div id="id" class="text" style="margin-left:-10%;"></div>
+					</div>
+				</div>
+			</div>
+			<div style="width:100%">
+				<div style="width:100%; float:left;">
+					<div style="margin-top:10px;width: 100%; text-align:center;">Analog</div>
+					<div style="text-align:center;">
+						<div data-role="fieldcontain" style="margin-left: 0; margin-right:0;">
+							<fieldset data-role="controlgroup" data-type="horizontal">
+								<label for="checkbox-0" id="analog0Label"><input id="analog0" type="checkbox" name="checkbox-0" id="checkbox-mini-0" class="custom" />
+								0</label>
+								<label for="checkbox-1" id="analog1Label" ><input id="analog1" type="checkbox" name="checkbox-1" id="checkbox-mini-1" class="custom"  />
+								22</label>
+							</fieldset>
+						</div>
+					</div>
+				</div>
+
+				<div style="width:100%; float:left;">
+					<div style="margin-top:10px;margin-bottom:10px; width: 100%; text-align:center;">Digital</div>
+					<div style="text-align:center;">
+						<fieldset data-role="controlgroup" data-type="horizontal">
+							<label id="digital0Label" for="checkbox-2"><input id="digital0" type="checkbox" name="checkbox-2" class="custom" />
+							0</label>
+							<label id="digital1Label" for="checkbox-3"><input id="digital1" type="checkbox" name="checkbox-3" class="custom"  />
+							1</label>
+							<label id="digital2Label" for="checkbox-4"><input id="digital2" type="checkbox" name="checkbox-4" class="custom"  />
+							0</label>
+							<label id="digital3Label" for="checkbox-5"><input id="digital3" type="checkbox" name="checkbox-5"  class="custom"  />
+							0</label>
+						</fieldset>
+					</div>
+				</div>
+			</div>
+			<span id="data"></span>
+			<div id="name"></div>
+		</div><!-- /content -->
+	</div><!-- /page -->
+	
+	<script type="text/javascript">
+		// wher the jquery mobile is ready to initialize the UI call the setUI function 
+		$(document).bind("pageshow", setupUI);
+
+		// Spacebrew Object
+		var sb
+			, app_name = "slider example"
+			, values = {};
+
+		function setupSpacebrew (app_name) {
+			app_name = "tei" + app_name;
+
+			console.log("Setting up spacebrew connection");
+			sb = new Spacebrew.Client();
+
+			sb.name(app_name);
+			sb.description(" rFlea module for TEI");
+
+			// configure the publication and subscription feeds
+			sb.addPublish("analog0", "range", "500");
+			sb.addPublish("analog1", "range", "500");
+			sb.addPublish("digital0", "range", "500");
+			sb.addPublish("digital1", "range", "500");
+			sb.addPublish("digital2", "range", "500");
+			sb.addPublish("digital3", "range", "500");
+			sb.addPublish("rssi", "range", "500");
+
+			// override Spacebrew events - this is how you catch events coming from Spacebrew
+			sb.onOpen = onOpen;
+			sb.onClose = onClose;
+
+			// connect to spacbrew
+			sb.connect();
+		};
+
+		if (window.location.search.indexOf("test") != -1){
+			onMessage("100,10,20,30,40,50,60,70,80,90,10,11,12,13");
+		}
+
+		function showID(id) {
+			onPaired();
+			$("#id").html(id).flowtype({
+			   fontRatio : 7
+			});
+		}
+
+		function showMessage(data) {
+			showDigital(0, data.digitalIn0);
+			showDigital(1, data.digitalIn1);
+			showDigital(2, data.digitalIn2);
+			showDigital(3, data.digitalIn3);
+
+			showAnalog(0, data.analogIn0);
+			showAnalog(1, data.analogIn1);
+		}
+
+		function showDigital(pin, value) {
+			var digitalValue = $("#digital" + pin + "Label.ui-btn-active").length;
+			if (digitalValue != value) {
+				$("#digital" + pin +"Label").click();
+			}
+			$("#digital" + pin + "Label .ui-btn-text").html(value);
+		}
+
+		function showAnalog(pin, value) {
+			$("#analog" + pin + "Label .ui-btn-text").html(value);
+		}
+		
+		function onMessage(data) {
+			$("body div:first").css("background-image", "-webkit-linear-gradient( #FFB479,#FFB479)");
+			
+			var rfleaData = parseRflea(data);
+			showMessage(rfleaData);
+			//$("#data").html(data);
+			var analog = rfleaData.analogIn;
+			var digital = rfleaData.digitalIn;
+
+			if (sb == undefined) {
+				showID(rfleaData.MAC);
+				setupSpacebrew(rfleaData.MAC);
+			}
+
+			for (var i in analog) {
+				sb.send("analog"+i, "range", analog[i]*4);
+			}
+
+			for (var i in digital) {
+				sb.send("digital"+i, "range", digital[i]*4);
+			}
+
+			sb.send("rssi", "range", rfleaData.RSSI);
+		}
+
+		function parseRflea(data) {
+			var data = data.split(",");
+
+			return {
+				channel: parseInt(data[2]),
+				analogIn: [
+					parseInt(data[3]),
+					parseInt(data[4])
+				],
+				analogIn0: parseInt(data[3]),
+				analogIn1: parseInt(data[4]),
+				digitalIn: [
+					parseInt(data[5]),
+					parseInt(data[6]),
+					parseInt(data[7]),
+					parseInt(data[8])
+				],
+				digitalIn0: parseInt(data[5]),
+				digitalIn1:parseInt(data[6]),
+				digitalIn2: parseInt(data[7]),
+				digitalIn3: parseInt(data[8]),
+				MAC: toHex(data[9])+":"+toHex(data[10])+":" + toHex(data[11]) + ":" +toHex(data[12]),
+				RSSI: parseInt(data[13]), 
+			}
+		}
+
+		function toHex(val) {
+			var result = parseInt(val).toString(16);
+			if (result.length == 1) {
+				result = "0" + result;
+			}
+
+			return result;
+		}
+		
+		function onPaired() {
+			$("#circle").toggleClass("searching", false).toggleClass("paired", true);
+		}
+		
+		function onSearching() {
+			
+		}
+
+		function onOpen() {
+			$("#spacebrewConnection").toggleClass("connected", true);
+		}
+
+		function onClose() {
+			$("#spacebrewConnection").toggleClass("connected", false);
+		}
+
+		function setupUI() {
+			$('.text').flowtype({
+			   fontRatio : 6
+			});
+		}
+    </script>
+</body>
+</html>
