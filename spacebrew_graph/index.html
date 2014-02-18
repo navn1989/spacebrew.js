@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<!-- saved from url=(0135)http://labatrockwell.github.io/spacebrew-javascript-wildstyle-examples/spacebrew_graph/index.html?server=193.10.67.60&name=GraphsVictor -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Spacebrew Graph</title>
+
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="css/reset.css" type="text/css" media="screen" charset="utf-8">
+		<link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8">
+		<script type="text/javascript" src="js/jq.js"></script>
+		<script type="text/javascript" src="js/smoothie.js"></script>
+		<script type="text/javascript" src="js/sb-1.2.0.js"></script>
+
+		<script type="text/javascript">
+
+		  // when page loads call the setup function to connect to spacebrew
+		  $(window).on("load",  setup );
+		  $(document).ready(setupUI);
+
+		  // variable that holds the spacebrew client object
+		  var sb
+			, app_name = "space graph"
+		  	;
+
+		  /**
+		   * setup Function that creates and configures the connection to the Spacebrew server.
+		   *          It is called when the page loads.
+		   */
+		  function setup (){
+			var random_id = "0000" + Math.floor(Math.random() * 10000)
+				;
+
+			app_name = app_name + ' ' + random_id.substring(random_id.length-4);
+
+		    // setup spacebrew!
+		    sb = new Spacebrew.Client();
+			sb.name(app_name);
+		    sb.description("This is a client which can be used to visualize various outputs from any other publishers.");
+
+		    // Override Spacebrew events - this is how you catch events coming from Spacebrew
+			sb.onOpen = onOpen;
+		    sb.onRangeMessage = onRangeMessage;
+
+		    // create the spacebrew subscription channels
+		    sb.addSubscribe("line1","range");
+		    sb.addSubscribe("line2","range");
+		    sb.addSubscribe("line3","range");
+
+		    // connect to spacebrew
+		    sb.connect();
+
+
+		  }
+
+		  function setupUI() {
+		  	var canvas = document.getElementById("canvas"),
+		    width = window.innerWidth,
+		  	height = document.body.offsetHeight;
+
+		  	canvas.width = width;
+		  	canvas.height = height;
+			window.onresize = function () {
+			    height = canvas.height = document.body.offsetHeight;
+			    width = canvas.width = document.body.offsetWidth;
+			};
+		  }
+
+			/**
+			 * Function that is called when Spacebrew connection is established
+			 */
+			function onOpen() {
+				var message = "Connected as <strong>" + sb.name() + "</strong>. ";
+				if (sb.name() === app_name) {
+					message += "<br>You can customize this app's name in the query string by adding <strong>name=your_app_name</strong>."
+				}
+				$("#name").html( message );
+			}
+		        
+		  /**
+		   * onRangeMessage Function that is called whenever new spacebrew range messages are received.
+		   *          It accepts two parameters:
+		   * @param  {String} name    Holds name of the subscription feed channel
+		   * @param  {Integer} value  Holds value received from the subscription feed
+		   */
+		  function onRangeMessage( name, value ){
+		    // handle the messages from each subscription channel
+		    if (name == "line1") {
+		      console.log("received line1 message");
+		      line1.append(new Date().getTime(), value);  // append new data point to line
+		    }
+
+		    if (name == "line2") {
+		      console.log("received line2 message");
+		      line2.append(new Date().getTime(), value);  // append new data point to line
+		    }
+
+		    if (name == "line3") {
+		      console.log("received line3 message");
+		      line3.append(new Date().getTime(), value);  // append new data point to line
+		    }
+		  }
+		</script>
+		<!-- MAIN -->
+	</head>
+
+	<body>
+	<canvas id="canvas" ></canvas>
+	<div id="name">Connected as <strong>GraphsVictor</strong>. </div>
+	<br>
+
+
+  
+
+
+<script type="text/javascript">
+  // GRAPHING STUFF
+
+  // create the three different time series that graph the range inputs from spacebrew
+  var line1 = new TimeSeries();
+  var line2 = new TimeSeries();
+  var line3 = new TimeSeries();
+
+  // create the chart wher the time series will be graphed
+  var smoothie = new SmoothieChart({  grid: { strokeStyle: 'rgb(255, 125, 125)', 
+                                              fillStyle: 'rgb(220, 220, 220)', 
+                                              lineWidth: 1, 
+                                              millisPerLine: 250, 
+                                              verticalSections: 6 
+                                            } 
+                                      });
+
+  // add the time series to the graph
+  smoothie.addTimeSeries(line1, { strokeStyle: 'rgb(221, 25, 150)', fillStyle: 'rgba(211, 25, 150, 0.4)', lineWidth: 3 });
+  smoothie.addTimeSeries(line2, { strokeStyle: 'rgb(25, 221, 150)', fillStyle: 'rgba(25, 221, 137, 0.3)', lineWidth: 3 });
+  smoothie.addTimeSeries(line3, { strokeStyle: 'rgb(25, 150, 221)', fillStyle: 'rgba(25, 150, 221, 0.3)', lineWidth: 3 });
+
+  // add the graph to the canvas
+  smoothie.streamTo(document.getElementById("canvas"), 1000);
+
+</script>
+</body></html>

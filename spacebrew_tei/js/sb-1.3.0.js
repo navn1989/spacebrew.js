@@ -59,12 +59,10 @@ if (!Function.prototype.bind) {
  * @namespace for Spacebrew library
  */
 var Spacebrew = Spacebrew || {};
-
 /**
  * create placeholder var for WebSocket object, if it does not already exist
  */
 var WebSocket = WebSocket || {};
-
 
 /**
  * Check if Running in Browser or Server (Node) Environment * 
@@ -100,6 +98,7 @@ if (window) {
 // 		WebSocket module (ws) needs to be saved in a node_modules so that it can be imported.
 if (!window && module) {
 	WebSocket = require("ws");
+
 	module.exports = {
 		Spacebrew: Spacebrew
 	} 
@@ -122,7 +121,6 @@ if (!window && module) {
  *              	debug 		(Optional) Debug flag that turns on info and debug messaging (limited use)
  */
 Spacebrew.Client = function( server, name, description, options ){
-
 	var options = options || {};
 
 	// check if the server variable is an object that holds all config values
@@ -141,7 +139,7 @@ Spacebrew.Client = function( server, name, description, options ){
 	this.reconnect = options.reconnect || true;
 	this.reconnect_timer = undefined;
 
-	this.send_interval = 16;
+	this.send_interval = 0;
 	this.send_blocked = false;
 	this.msg = {};
 
@@ -220,9 +218,9 @@ Spacebrew.Client = function( server, name, description, options ){
  * @memberOf Spacebrew.Client
  */
 Spacebrew.Client.prototype.connect = function(){
+	WebSocketInterface.showToast("connecting to:" + "ws://" + this.server + ":" + this.port);
 	try {
-		console.log("ws://" + this.server + ":" + this.port +"/rflea" );
-		this.socket 	 		= new WebSocket("ws://" + this.server + ":" + this.port +"/rflea" );
+		this.socket 	 		= new WebSocket("ws://" + this.server + ":" + this.port);
 		this.socket.onopen 		= this._onOpen.bind(this);
 		this.socket.onmessage 	= this._onMessage.bind(this);
 		this.socket.onclose 	= this._onClose.bind(this);
@@ -358,7 +356,7 @@ Spacebrew.Client.prototype.send = function( name, type, value ){
 	}
 
    	// if send block is not active then send message
-   	if (!this.send_blocked) {
+   	if (!this.send_blocked || true) {
 	   	this.socket.send(JSON.stringify(this.msg));
 		this.send_blocked = true;
 		this.msg = undefined;
@@ -380,7 +378,7 @@ Spacebrew.Client.prototype.send = function( name, type, value ){
  */
 Spacebrew.Client.prototype._onOpen = function() {
     console.log("[_onOpen:Spacebrew] Spacebrew connection opened, client name is: " + this._name);
-
+    WebSocketInterface.showToast("onOpen");
 	this._isConnected = true;
 	if (this.admin.active) this.connectAdmin();
 
@@ -393,6 +391,7 @@ Spacebrew.Client.prototype._onOpen = function() {
 
   	// send my config
   	this.updatePubSub();
+
   	this.onOpen();
 }
 

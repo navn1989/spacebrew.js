@@ -19,16 +19,16 @@
 
 		// Spacebrew Object
 		var sb
-			, app_name = "slider example"
+			, app_name = "hue light"
 			, values = {} 
-			;
+			, hueAddress = window.getQueryString('hue') || "http://192.168.0.100";
 
 		/**
 		 * setupSpacebrew Function that creates and configures the connection to the Spacebrew server.
 		 * 				  It is called when the page loads.
 		 */
 		function setupSpacebrew (){
-			var random_id = "0000" + Math.floor(Math.random() * 10000)
+			var random_id = "0000"
 				;
 
 			app_name = app_name + ' ' + random_id.substring(random_id.length-4);
@@ -40,7 +40,9 @@
 			sb.description("Sliders for sending and displaying SpaceBrew range messages.");
 
 			// configure the publication and subscription feeds
-			sb.addSubscribe("brightness", "range");
+			sb.addSubscribe("bri", "range");
+			sb.addSubscribe("sat", "range");
+			sb.addSubscribe("hue", "range");
 
 			// override Spacebrew events - this is how you catch events coming from Spacebrew
 			sb.onRangeMessage = onRangeMessage;
@@ -83,12 +85,12 @@
 		 * @param  {String} name  	Holds name of the subscription feed channel
 		 * @param  {Integer} value 	Holds value received from the subscription feed
 		 */
-		function onRangeMessage(name, value){
-			var message = {
-				"hue": value
-			};
-			console.log("Received new range message ", value);
-			httpRequest("http://192.168.0.100/api/webuser123/lights/1/state","PUT", JSON.stringify(message));
+		function onRangeMessage(name, value) {
+			var message = {};
+			message[name] = value;
+			console.log("received", name, value);
+			// This is just an example
+			httpRequest(hueAddress + "/api/webuser123/lights/1/state","PUT", JSON.stringify(message));
 			$("#brightness"+name).slider('refresh', value);
 		};
 
